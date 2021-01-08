@@ -1,23 +1,60 @@
 <template>
   <div class="hello">
-    <h1>Webcrawler</h1>
     <div>
-      <table>
+      <table class="table is-fullwidth is-striped is-hoverable">
         <thead>
           <th>Webcrawl job</th>
           <th>Status</th>
         </thead>
         <tbody>
-          <tr v-for="job in jobs" :key="job.id">
+          <tr v-for="job in jobs" :key="job.id" v-on:click="getJobById(job.id)">
             <td>{{ job.id }}</td>
-            <td>{ job.url }}</td>
+            <td>{{ job.url }}</td>
           </tr>
           <tr>
-            <td>Job 1</td>
+            <td>Hardcoded Job example</td>
             <td>Ready</td>
           </tr>
         </tbody>
       </table>
+    </div>
+    <div v-bind:class="{ 'is-active': showDataUrls }" class="modal">
+      <div class="modal-background"></div>
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <h1 class="moda-card-title title is-4">ULRs found for this target</h1>
+        </header>
+        <section class="modal-card-body" id="wallets-container">
+          <h4 class="title is-6">Crawl job for: {{ openJob.url }}</h4>
+          <div
+            class="content"
+            v-bind:class="{ 'is-active': openJob.status === 2 }"
+          >
+            <ul>
+              <li v-for="result in openJob.results" :key="result">
+                {{ result }}
+              </li>
+            </ul>
+          </div>
+          <div
+            class="content"
+            :class="[openJob.status === 1 ? '' : 'is-hidden']"
+          >
+            <p>Not ready yet</p>
+          </div>
+          <div
+            class="content"
+            :class="[openJob.status === 0 ? '' : 'is-hidden']"
+          >
+            <p>Error in crawl</p>
+          </div>
+        </section>
+        <footer class="modal-card-foot">
+          <button class="button" v-on:click="showDataUrls = false">
+            Close
+          </button>
+        </footer>
+      </div>
     </div>
     <div>
       <form>
@@ -27,9 +64,9 @@
             <input
               class="input"
               id="url"
-              v-model="targetUrl"
               type="text"
               placeholder="Url"
+              v-model="targetJobUrl"
             />
           </div>
         </div>
@@ -40,6 +77,7 @@
               id="url"
               type="button"
               value="Send"
+              v-on:click="postJobs"
             />
           </div>
         </div>
@@ -49,28 +87,67 @@
 </template>
 
 <script>
+// to do
+// add get all jobs on load -> done
+// add post job on click -> done
+// add get 1 job on click -> done
+// display all urls found for job
+import axios from "axios";
+
+const jobsURL = "http://localhost:8000/jobs";
+
 export default {
   name: "HelloWorld",
-  props: {
-    msg: String,
+  data: function () {
+    // init page data
+    return {
+      jobs: [],
+      targetJobUrl: "",
+      openJob: {},
+      showDataUrls: false,
+    };
+  },
+  methods: {
+    // recover jobs
+    getJobs: function () {
+      var self = this;
+      axios.get(jobsURL).then(function (response) {
+        self.jobs = response.data;
+        console.info(
+          `Retrieved ${response.data.length} queued jobs from server --> ${response.status}`
+        );
+      });
+    },
+    getJobById: function (jobId) {
+      var self = this;
+      var urlId = jobsURL + "/" + jobId;
+      self.showDataUrls = true;
+      axios.get(urlId).then(function (response) {
+        self.openJob = response.data;
+        console.log(self.openJob);
+        console.log(
+          `Retrieved job with id=${self.openJob.id} --> ${response.status}`
+        );
+      });
+    },
+    postJobs: function () {
+      var self = this;
+      // jobURL validation should go here
+      var body = {
+        targetJobUrl: self.targetJobUrl,
+      };
+      axios.post(jobsURL, body).then(function (response) {
+        console.log(
+          `Queued job for url "${body.targetJobUrl}" --> ${response.status}`
+        );
+      });
+    },
+  },
+  created: function () {
+    this.getJobs();
+    setInterval(() => {
+      this.getJobs();
+    }, 5000);
   },
 };
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
