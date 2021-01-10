@@ -23,6 +23,7 @@ app.get("/", (req, res) => {
 
 // GET endpoint to display data for all jobs (poll)
 app.get("/jobs", (req, res) => {
+    // to do: improve ux by returning jobs with no results
     var jobs = [];
     col.find({}).toArray( (err, result) => {
         if (err) {
@@ -30,7 +31,7 @@ app.get("/jobs", (req, res) => {
             res.sendStatus(500);
             throw err;
         } else {
-            jobs.push(result); // try to concat here
+            jobs.push(result);
             console.log(`Returning ${jobs.length} jobs`);
             res.send(result);
         }
@@ -40,14 +41,25 @@ app.get("/jobs", (req, res) => {
 // POST endpoint to queue up a job
 app.post("/jobs", (req, res) => {
     console.log(`Got body: ${req.body.targetJobUrl}`); // needs validation
+    var newJob = {
+        url: req.body.targetJobUrl,
+        results: [],
+        status: 1
+    };
+    /*
+        status 1: crawl job queued but not started
+        status 2: crawl job in progress
+        status 3: crawl job done
+        status 0: crawl job interrupted and finished due to error 
+    */
     col.insertOne(newJob, (err, result) => {
         if (err) {
-            console.log("getJobs query error");
+            console.log("postJobs query error");
             res.sendStatus(500);
             throw err;
         } else {
-            jobs.push(result); // try to concat here
-            console.log(`Returning ${jobs.length} jobs`);
+            // to do: queue up crawl job
+            console.log(`Document ${result} inserted`);
             res.sendStatus(200);
         }
     });
@@ -76,18 +88,18 @@ mongoClient.connect(mongoUrl, (err, client) => {
         col = client.db("jobsdb").collection("jobs");
         // insert default data
         // var job1 = {
-        //     id: 1,
-        //     url: "example.com", 
+        //     url: "example.com",
+        //     results: [], 
         //     status: 0
         // };
         // var job2 = {
-        //     id: 2,
         //     url: "google.com",
+        //     results: [], 
         //     status: 1
         // };
         // var job3 = {
-        //     id: 3,
         //     url: "wikipedia.com",
+        //     results: [], 
         //     status: 2
         // };
         // col.insertOne(job1, (err, res) => {

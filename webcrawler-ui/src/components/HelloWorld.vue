@@ -3,15 +3,22 @@
     <div>
       <table class="table is-fullwidth is-striped is-hoverable">
         <thead>
-          <th>Webcrawl job</th>
+          <th>Crawl job ID</th>
+          <th>Crawl job URL</th>
           <th>Status</th>
         </thead>
         <tbody>
-          <tr v-for="job in jobs" :key="job.id" v-on:click="getJobById(job.id)">
-            <td>{{ job.id }}</td>
+          <tr
+            v-for="job in jobs"
+            :key="job._id"
+            v-on:click="getJobById(job._id)"
+          >
+            <td>{{ job._id }}</td>
             <td>{{ job.url }}</td>
+            <td>{{ job.status }}</td>
           </tr>
           <tr>
+            <td>123456789</td>
             <td>Hardcoded Job example</td>
             <td>Ready</td>
           </tr>
@@ -120,15 +127,16 @@ export default {
     },
     getJobById: function (jobId) {
       var self = this;
-      var urlId = jobsURL + "/" + jobId;
       self.showDataUrls = true;
-      axios.get(urlId).then(function (response) {
-        self.openJob = response.data;
-        console.log(self.openJob);
-        console.log(
-          `Retrieved job with id=${self.openJob.id} --> ${response.status}`
-        );
-      });
+      self.openJob = self.jobs.find((j) => j._id === jobId);
+      // var urlId = jobsURL + "/" + jobId;
+      // axios.get(urlId).then(function (response) {
+      //   self.openJob = response.data;
+      //   console.log(self.openJob);
+      //   console.log(
+      //     `Retrieved job with id=${self.openJob.id} --> ${response.status}`
+      //   );
+      // });
     },
     postJobs: function () {
       var self = this;
@@ -140,6 +148,8 @@ export default {
         console.log(
           `Queued job for url "${body.targetJobUrl}" --> ${response.status}`
         );
+        self.targetJobUrl = "";
+        self.getJobs();
       });
     },
   },
