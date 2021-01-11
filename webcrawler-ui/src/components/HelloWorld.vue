@@ -98,7 +98,7 @@
 // add get all jobs on load -> done
 // add post job on click -> done
 // add get 1 job on click -> done
-// display all urls found for job
+// display all urls found for job -> done
 import axios from "axios";
 
 const jobsURL = "http://localhost:8000/jobs";

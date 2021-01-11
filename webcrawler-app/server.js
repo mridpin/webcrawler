@@ -2,6 +2,7 @@
 import Express from "Express"
 import Cors from "Cors"
 import mongodb from "mongodb"
+import Crawler from "crawler"
 
 // Constants
 const app = new Express();
@@ -23,7 +24,7 @@ app.get("/", (req, res) => {
 
 // GET endpoint to display data for all jobs (poll)
 app.get("/jobs", (req, res) => {
-    // to do: improve ux by returning jobs with no results
+    // todo: improve ux by returning jobs with no results
     var jobs = [];
     col.find({}).toArray( (err, result) => {
         if (err) {
@@ -58,9 +59,10 @@ app.post("/jobs", (req, res) => {
             res.sendStatus(500);
             throw err;
         } else {
-            // to do: queue up crawl job
+            // todo: queue up crawl job
             console.log(`Document ${result} inserted`);
             res.sendStatus(200);
+            var crawler = new Crawler(req.body.targetJobUrl);
         }
     });
 });
@@ -86,40 +88,6 @@ mongoClient.connect(mongoUrl, (err, client) => {
         console.log("MongoDB database created!");
         // db = client.db("jobsdb");
         col = client.db("jobsdb").collection("jobs");
-        // insert default data
-        // var job1 = {
-        //     url: "example.com",
-        //     results: [], 
-        //     status: 0
-        // };
-        // var job2 = {
-        //     url: "google.com",
-        //     results: [], 
-        //     status: 1
-        // };
-        // var job3 = {
-        //     url: "wikipedia.com",
-        //     results: [], 
-        //     status: 2
-        // };
-        // col.insertOne(job1, (err, res) => {
-        //     if (err) {
-        //         throw err;
-        //     }
-        //     console.log(`Inserted job ${job1.id}`);
-        // });
-        // col.insertOne(job2, (err, res) => {
-        //     if (err) {
-        //         throw err;
-        //     }
-        //     console.log(`Inserted job ${job2.id}`);
-        // });
-        // col.insertOne(job3, (err, res) => {
-        //     if (err) {
-        //         throw err;
-        //     }
-        //     console.log(`Inserted job ${job3.id}`);
-        // });
     }
 });
 
