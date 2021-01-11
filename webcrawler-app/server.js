@@ -2,7 +2,7 @@
 import Express from "Express"
 import Cors from "Cors"
 import mongodb from "mongodb"
-import Crawler from "crawler"
+import { createWorker } from "./crawlController.js"
 
 // Constants
 const app = new Express();
@@ -62,7 +62,13 @@ app.post("/jobs", (req, res) => {
             // todo: queue up crawl job
             console.log(`Document ${result} inserted`);
             res.sendStatus(200);
-            var crawler = new Crawler(req.body.targetJobUrl);
+
+            // -----------------------------------------------------------
+            // Constants
+            createWorker();
+
+            // -----------------------------------------------------------
+
         }
     });
 });
