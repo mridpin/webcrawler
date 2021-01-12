@@ -1,15 +1,18 @@
+/* This file handles the server logic and database access of the application */
+
 // Imports
 import Express from "Express"
 import Cors from "Cors"
 import mongodb from "mongodb"
-import { startCrawlJob } from "./crawlController.js"
+import axios from "axios"
+import cheerio from "cheerio"
+// import { startCrawlJob } from "./crawlController.js"
 
 // Constants
 const app = new Express();
 const port = 8000;
 const mongoUrl = "mongodb://localhost:27017/jobsdb"
 const mongoClient = mongodb.MongoClient;
-// var db = null;
 var col = null
 
 // Configs
@@ -48,9 +51,8 @@ app.post("/jobs", (req, res) => {
         status: 1
     };
     /*
-        status 1: crawl job queued but not started
-        status 2: crawl job in progress
-        status 3: crawl job done
+        status 1: crawl job in progress
+        status 2: crawl job done
         status 0: crawl job interrupted and finished due to error 
     */
     col.insertOne(newJob, (err, result) => {
@@ -62,13 +64,8 @@ app.post("/jobs", (req, res) => {
             // todo: queue up crawl job
             console.log(`Document ${result} inserted`);
             res.sendStatus(200);
-
-            // -----------------------------------------------------------
-            // Constants
-            startCrawlJob("http://example.com/");
-
-            // -----------------------------------------------------------
-
+            // asynchronously start crawl job
+            startCrawlJob(newJob);
         }
     });
 });
@@ -91,11 +88,43 @@ mongoClient.connect(mongoUrl, (err, client) => {
         console.log("MongoDB connection error!");
         throw err;
     } else {
-        console.log("MongoDB database created!");
-        // db = client.db("jobsdb");
+        console.log("MongoDB database connection created! Using database jobsdb and collection jobs");
         col = client.db("jobsdb").collection("jobs");
     }
 });
 
 // Server start
 app.listen(port, () => console.log(`Server started. Listening on port ${port} ....`));
+
+function startCrawlJob(newJob) {
+    var links = [];
+    fetchUrl(newJob.url).then((res) => {
+        var html = res.data;
+        var $ = cheerio.load(html);
+        $('a').each( (i, item) => {
+            links.push(item.attribs.href);
+        }); 
+        console.log(links);
+        // todo: store results and status as finished
+    })
+    // if site does not exist / does not respond
+    .catch( (err) => {
+        // todo: store result of this crawl as error
+        console.log("error in crawl");
+        console.log(err);
+    });
+}
+
+async function fetchUrl(url) {
+    console.log(`Queued up crawling job for ${url}...`);
+    let response = await axios(url).catch((err) => {
+        console.log("error in axios");
+        // todo: store result of this crawl as error
+    });
+    if (response.status !== 200) {
+        console.log(`Error while crawling site ${url}... finishing as error`);
+        // todo: store result of this crawl as error
+    }
+    return response;
+}
+
