@@ -2,7 +2,7 @@
 import Express from "Express"
 import Cors from "Cors"
 import mongodb from "mongodb"
-import { createWorker } from "./crawlController.js"
+import { startCrawlJob } from "./crawlController.js"
 
 // Constants
 const app = new Express();
@@ -65,7 +65,7 @@ app.post("/jobs", (req, res) => {
 
             // -----------------------------------------------------------
             // Constants
-            createWorker();
+            startCrawlJob("http://example.com/");
 
             // -----------------------------------------------------------
 
