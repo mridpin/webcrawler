@@ -22,7 +22,7 @@ The tech stack used for this project is as follows, with the following dependenc
     * Run `npm install` to download the dependencies
     * Run `npm start` to run the server. Server will listen on port 8000
 4. To start the UI:
-    * Navigate to webcrawler-app
+    * Navigate to webcrawler-ui
     * Run `npm install` to download the dependencies
     * Run `npm run serve` to run the UI. UI will be available on port 8080
 5. Open localhost:8080 and start crawling jobs by submitting the url in the form. The URL must be complete, so remember to include `http(s)://...`. The table with automatically update the jobs status. Click on a job to view its results. For simplicity, there is no URL validation, if the URL is not valid, it will be displayed as a job unsuccessfully finished with error.
