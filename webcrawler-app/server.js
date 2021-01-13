@@ -1,19 +1,19 @@
-/* This file handles the server logic and database access of the application */
-
 // Imports
-import Express from "Express"
-import Cors from "Cors"
-import mongodb from "mongodb"
-import axios from "axios"
-import cheerio from "cheerio"
-// import { startCrawlJob } from "./crawlController.js"
+import Express from "Express";
+import Cors from "Cors";
+import mongodb from "mongodb";
+import axios from "axios";
+import cheerio from "cheerio";
 
 // Constants
 const app = new Express();
 const port = 8000;
-const mongoUrl = "mongodb://localhost:27017/jobsdb"
+const mongoUrl = "mongodb://localhost:27017/jobsdb";
 const mongoClient = mongodb.MongoClient;
-var col = null
+const JOB_FAILURE = 0;
+const JOB_SUCCESS = 2;
+var col = null;
+
 
 // Configs
 app.use(Express.json());
@@ -27,16 +27,13 @@ app.get("/", (req, res) => {
 
 // GET endpoint to display data for all jobs (poll)
 app.get("/jobs", (req, res) => {
-    // todo: improve ux by returning jobs with no results
-    var jobs = [];
     col.find({}).toArray( (err, result) => {
         if (err) {
             console.log("getJobs query error");
             res.sendStatus(500);
             throw err;
         } else {
-            jobs.push(result);
-            console.log(`Returning ${jobs.length} jobs`);
+            console.log(`Returning ${result.length} jobs`);
             res.send(result);
         }
     });
@@ -61,25 +58,12 @@ app.post("/jobs", (req, res) => {
             res.sendStatus(500);
             throw err;
         } else {
-            // todo: queue up crawl job
             console.log(`Document ${result} inserted`);
             res.sendStatus(200);
             // asynchronously start crawl job
             startCrawlJob(newJob);
         }
     });
-});
-
-// GET to get results from 1 job
-app.get("/jobs/:id", (req, res) => {
-    console.log(`Returning job with id=${req.params.id}`);
-    var job = {
-        id: 1,
-        url: "example.com",
-        results: ["example.com/uno", "example.com/dos"],
-        status: 2
-    };
-    res.send(job);
 });
 
 // Database start
@@ -98,33 +82,77 @@ app.listen(port, () => console.log(`Server started. Listening on port ${port} ..
 
 function startCrawlJob(newJob) {
     var links = [];
-    fetchUrl(newJob.url).then((res) => {
+    fetchUrl(newJob)
+    .then((res) => {
         var html = res.data;
         var $ = cheerio.load(html);
         $('a').each( (i, item) => {
             links.push(item.attribs.href);
         }); 
         console.log(links);
-        // todo: store results and status as finished
+        // store results and status as finished
+        addResultsToJob(newJob, links);
+        updateJobStatus(newJob, JOB_SUCCESS);
     })
     // if site does not exist / does not respond
     .catch( (err) => {
-        // todo: store result of this crawl as error
+        // store result of this crawl as error
+        updateJobStatus(newJob, JOB_FAILURE);
         console.log("error in crawl");
         console.log(err);
     });
 }
 
-async function fetchUrl(url) {
-    console.log(`Queued up crawling job for ${url}...`);
-    let response = await axios(url).catch((err) => {
-        console.log("error in axios");
-        // todo: store result of this crawl as error
+async function fetchUrl(newJob) {
+    console.log(`Queued up crawling job for ${newJob.url}...`);
+    var response = await axios(newJob.url)
+    .catch((err) => {
+        console.log("Error in HTTP request: site is down or does not exist... finishing job as error");
+        updateJobStatus(newJob, JOB_FAILURE);
     });
     if (response.status !== 200) {
-        console.log(`Error while crawling site ${url}... finishing as error`);
-        // todo: store result of this crawl as error
+        console.log("Error in HTTP, status not 200... finishing job as error");
+        updateJobStatus(newJob, JOB_FAILURE);
     }
     return response;
 }
 
+async function addResultsToJob(job, resultsList) {
+    console.log (`Updating job with _id: + ${job._id}`);
+    var query = {
+        _id: job._id
+    };
+    var newValue = {
+        $set: {
+            results: resultsList
+        }
+    }
+    col.updateOne(query, newValue, (err, result) => {
+        if (err) {
+            console.log("addResultsToJob query error");
+            throw err;
+        } else {
+            console.log(`Document ${job._id} updated`);
+        }
+    });
+} 
+
+async function updateJobStatus(job, statusCode) {
+    console.log (`Updating job with _id: + ${job._id}`);
+    var query = {
+        _id: job._id
+    };
+    var newValue = {
+        $set: {
+            status: statusCode
+        }
+    }
+    col.updateOne(query, newValue, (err, result) => {
+        if (err) {
+            console.log("updateJobStatus query error");
+            throw err;
+        } else {
+            console.log(`Document ${job._id} updated`);
+        }
+    });
+} 
