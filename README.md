@@ -1,10 +1,10 @@
 # Webcrawler
 ## Requirements
 The tech stack used for this project is as follows, with the following dependencies
-* Data storage: MongoDB v4.4.3
+* Data storage: MongoDB v4.4.3 -> Mongo has been used to simplify the storage of a "list of lists" in a single collection. This datastructure would be more complex in SQL
 * Server: NodeJS v15.4.0
     * Axios v0.21.1 -> Perform HTTP request to download page from target url
-    * Cheerio v1.0.0 -> Navigate the DOM to find the URLs
+    * Cheerio v1.0.0 -> Navigate the DOM in the server to find the URLs
     * Cors v2.8.5 -> Prevent CORS errors when working with localhost
     * Express v4.17.1 -> Rest server
     * MongoDB v3.6.3 -> Driver for data storage
