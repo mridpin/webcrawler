@@ -17,11 +17,6 @@
             <td>{{ job.url }}</td>
             <td>{{ statusCode[job.status] }}</td>
           </tr>
-          <tr>
-            <td>123456789</td>
-            <td>Hardcoded Job example</td>
-            <td>Ready</td>
-          </tr>
         </tbody>
       </table>
     </div>
