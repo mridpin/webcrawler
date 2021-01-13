@@ -67,7 +67,7 @@
               class="input"
               id="url"
               type="text"
-              placeholder="Url"
+              placeholder="http://....."
               v-model="targetJobUrl"
             />
           </div>
