@@ -89,17 +89,14 @@ function startCrawlJob(newJob) {
         $('a').each( (i, item) => {
             links.push(item.attribs.href);
         }); 
-        console.log(links);
+        console.log(`Found ${links.length} links for ${newJob.url}`);
         // store results and status as finished
         addResultsToJob(newJob, links);
         updateJobStatus(newJob, JOB_SUCCESS);
     })
     // if site does not exist / does not respond
     .catch( (err) => {
-        // store result of this crawl as error
-        updateJobStatus(newJob, JOB_FAILURE);
-        console.log("error in crawl");
-        console.log(err);
+        console.log(`There was an error in crawl process with id ${newJob._id}... finishing job as error`);
     });
 }
 
@@ -107,18 +104,18 @@ async function fetchUrl(newJob) {
     console.log(`Queued up crawling job for ${newJob.url}...`);
     var response = await axios(newJob.url)
     .catch((err) => {
-        console.log("Error in HTTP request: site is down or does not exist... finishing job as error");
+        console.log(`Error in HTTP request: site ${newJob.url} is down or does not exist... finishing job as error`);
         updateJobStatus(newJob, JOB_FAILURE);
     });
     if (response.status !== 200) {
-        console.log("Error in HTTP, status not 200... finishing job as error");
+        console.log("Error in HTTP request, status was not 200... finishing job as error");
         updateJobStatus(newJob, JOB_FAILURE);
     }
     return response;
 }
 
 async function addResultsToJob(job, resultsList) {
-    console.log (`Updating job with _id: + ${job._id}`);
+    console.log (`Updating results for job with _id ${job._id}`);
     var query = {
         _id: job._id
     };
@@ -132,13 +129,13 @@ async function addResultsToJob(job, resultsList) {
             console.log("addResultsToJob query error");
             throw err;
         } else {
-            console.log(`Document ${job._id} updated`);
+            console.log(`... added results to ${job._id}`);
         }
     });
 } 
 
 async function updateJobStatus(job, statusCode) {
-    console.log (`Updating job with _id: + ${job._id}`);
+    console.log (`Updating status job with _id ${job._id}`);
     var query = {
         _id: job._id
     };
@@ -152,7 +149,7 @@ async function updateJobStatus(job, statusCode) {
             console.log("updateJobStatus query error");
             throw err;
         } else {
-            console.log(`Document ${job._id} updated`);
+            console.log(`... updated status for ${job._id}`);
         }
     });
 } 
