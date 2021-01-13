@@ -15,7 +15,7 @@
           >
             <td>{{ job._id }}</td>
             <td>{{ job.url }}</td>
-            <td>{{ job.status }}</td>
+            <td>{{ statusCode[job.status] }}</td>
           </tr>
           <tr>
             <td>123456789</td>
@@ -39,7 +39,7 @@
           >
             <ul>
               <li v-for="result in openJob.results" :key="result">
-                {{ result }}
+                <a :href="result"> {{ result }} </a>
               </li>
             </ul>
           </div>
@@ -103,8 +103,14 @@ import axios from "axios";
 
 const jobsURL = "http://localhost:8000/jobs";
 
+const statusCode = {
+  0: "Error",
+  1: "In progress",
+  2: "Finished"
+}
+
 export default {
-  name: "HelloWorld",
+  name: "Webcrawler",
   data: function () {
     // init page data
     return {
@@ -112,6 +118,7 @@ export default {
       targetJobUrl: "",
       openJob: {},
       showDataUrls: false,
+      statusCode
     };
   },
   methods: {
@@ -129,14 +136,6 @@ export default {
       var self = this;
       self.showDataUrls = true;
       self.openJob = self.jobs.find((j) => j._id === jobId);
-      // var urlId = jobsURL + "/" + jobId;
-      // axios.get(urlId).then(function (response) {
-      //   self.openJob = response.data;
-      //   console.log(self.openJob);
-      //   console.log(
-      //     `Retrieved job with id=${self.openJob.id} --> ${response.status}`
-      //   );
-      // });
     },
     postJobs: function () {
       var self = this;
