@@ -89,7 +89,7 @@ function startCrawlJob(newJob) {
         $('a').each( (i, item) => {
             rawLinks.push(item.attribs.href);
         }); 
-        var links = [...new Set(rawLinks)];
+        var links = [...new Set(rawLinks)]; // removes duplicates
         console.log(`Found ${links.length} links for ${newJob.url}`);
         // store results and status as finished
         addResultsToJob(newJob, links);
