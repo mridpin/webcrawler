@@ -15,7 +15,7 @@ The tech stack used for this project is as follows, with the following dependenc
     * Vue v2.6.11 -> Core Vue library
     
 ## How to run the app
-1. Start your MongoDB service to run in the background
+1. Start your MongoDB service to run in the background. The server will automatically create the database and collection
 2. Download source code or zip
 3. To start the server:
     * Navigate to webcrawler-app
