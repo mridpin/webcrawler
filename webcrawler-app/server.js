@@ -81,14 +81,15 @@ mongoClient.connect(mongoUrl, (err, client) => {
 app.listen(port, () => console.log(`Server started. Listening on port ${port} ....`));
 
 function startCrawlJob(newJob) {
-    var links = [];
+    var rawLinks = [];
     fetchUrl(newJob)
     .then((res) => {
         var html = res.data;
         var $ = cheerio.load(html);
         $('a').each( (i, item) => {
-            links.push(item.attribs.href);
+            rawLinks.push(item.attribs.href);
         }); 
+        var links = [...new Set(rawLinks)];
         console.log(`Found ${links.length} links for ${newJob.url}`);
         // store results and status as finished
         addResultsToJob(newJob, links);
